@@ -10,11 +10,11 @@ const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const dotenv = require("dotenv");
 
-// Load environment variables from .env file
+// Load environment variables
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 10000; // Use Vercel-assigned port or 10000
 const jwtSecret = process.env.JWT_SECRET || "first_project_fullstack";
 
 // Middleware
@@ -25,13 +25,25 @@ app.use(
       "https://money-manager-qzog.vercel.app",
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.options("*", cors());
 app.use(express.json());
 app.use(cookieParser());
+
+// Root Route (GET /)
+app.get("/", (req, res) => {
+  console.log("Root route accessed: GET /");
+  res.status(200).json({ message: "Money Manager API is running" });
+});
+
+// Health Check Route (HEAD /)
+app.head("/", (req, res) => {
+  console.log("Health check: HEAD /");
+  res.status(200).end();
+});
 
 // Catch-all for invalid routes
 app.use((req, res, next) => {
@@ -198,7 +210,7 @@ app.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
-// Transaction Management Routes
+// Transaction Routes (unchanged from original, with verifyToken)
 app.get("/transaction", verifyToken, async (req, res) => {
   const userId = req.user.userId;
   try {
