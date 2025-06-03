@@ -18,7 +18,10 @@ const port = process.env.PORT || 3001;
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://money-manager-qzog.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "https://money-manager-qzog.vercel.app", // Allow base domain
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -27,6 +30,12 @@ app.use(
 app.options("*", cors()); // Handle preflight OPTIONS requests
 app.use(express.json());
 app.use(cookieParser());
+
+// Catch-all for invalid routes
+app.use((req, res, next) => {
+  console.log(Invalid route accessed: ${req.method} ${req.path});
+  res.status(404).json({ error: Route ${req.path} not found });
+});
 
 // MongoDB Atlas Connection
 const uri = process.env.MONGO_URI;
@@ -65,6 +74,11 @@ app.post("/register", async (req, res) => {
   console.log("Register request received:", req.body);
   const { username, email, password } = req.body;
 
+  if (!db) {
+    console.error("Database not connected");
+    return res.status(500).json({ error: "Database not connected" });
+  }
+
   if (!username || !email || !password) {
     console.log("Validation failed: Missing fields");
     return res.status(400).json({ error: "All fields are required" });
@@ -92,11 +106,11 @@ app.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
     });
-    console.log("User registered successfully");
+    console.log("Response sent:", { message: "User registered successfully" });
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     console.error("Registration error:", err);
-    res.status(500).json({ error: `Registration failed: ${err.message}` });
+    res.status(500).json({ error: Registration failed: ${err.message} });
   }
 });
 
@@ -104,6 +118,11 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   console.log("Login request received:", req.body);
   const { email, password } = req.body;
+
+  if (!db) {
+    console.error("Database not connected");
+    return res.status(500).json({ error: "Database not connected" });
+  }
 
   if (!email || !password) {
     console.log("Validation failed: Missing fields");
@@ -161,6 +180,7 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 // User Logout
 app.post("/logout", (req, res) => {
   res.cookie("jwt_token", "", {
@@ -258,7 +278,7 @@ app.delete("/transaction/:id", verifyToken, async (req, res) => {
     }
 
     console.log("Transaction deleted successfully:", id);
-    res.status(200).json({ message: `Transaction with ID ${id} deleted` });
+    res.status(200).json({ message: Transaction with ID ${id} deleted });
   } catch (err) {
     console.error("Error deleting transaction:", err);
     res.status(500).json({ error: err.message });
@@ -368,7 +388,7 @@ cron.schedule("59 23 28-31 * *", async () => {
         });
 
         await transactionsCollection.deleteMany({ userId, type: "Expenses" });
-        console.log(`Monthly reset completed successfully for user ${userId}`);
+        console.log(Monthly reset completed successfully for user ${userId});
       }
     } catch (err) {
       console.error("Cron job error:", err);
@@ -403,7 +423,7 @@ app.get("/generate-pdf", verifyToken, async (req, res) => {
     console.log("Total Expenses:", totalExpenses);
     console.log("Remaining Amount:", remainingAmount);
 
-    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+    res.setHeader("Content-Disposition", attachment; filename=${fileName});
     res.setHeader("Content-Type", "application/pdf");
 
     const pdfDoc = new PDFDocument({ margin: 30, size: "A4" });
@@ -514,5 +534,5 @@ app.get("/generate-pdf", verifyToken, async (req, res) => {
 
 // Start Server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(Server running on port ${port});
 });
