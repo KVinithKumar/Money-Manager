@@ -33,8 +33,8 @@ app.use(cookieParser());
 
 // Catch-all for invalid routes
 app.use((req, res, next) => {
-  console.log(Invalid route accessed: ${req.method} ${req.path});
-  res.status(404).json({ error: Route ${req.path} not found });
+  console.log(`Invalid route accessed: ${req.method} ${req.path}`); // Corrected
+  res.status(404).json({ error: `Route ${req.path} not found` }); // Corrected
 });
 
 // MongoDB Atlas Connection
@@ -110,7 +110,7 @@ app.post("/register", async (req, res) => {
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     console.error("Registration error:", err);
-    res.status(500).json({ error: Registration failed: ${err.message} });
+    res.status(500).json({ error: `Registration failed: ${err.message}` }); // Corrected
   }
 });
 
@@ -163,10 +163,7 @@ app.post("/login", async (req, res) => {
       path: "/",
     });
     console.log(
-      "Cookie set for user:",
-      email,
-      "Token:",
-      token.substring(0, 20) + "..."
+      `Cookie set for user: ${email}, Token: ${token.substring(0, 20)}...` // Corrected
     );
     console.log("Login successful for:", email);
     res.json({
@@ -278,7 +275,7 @@ app.delete("/transaction/:id", verifyToken, async (req, res) => {
     }
 
     console.log("Transaction deleted successfully:", id);
-    res.status(200).json({ message: Transaction with ID ${id} deleted });
+    res.status(200).json({ message: `Transaction with ID ${id} deleted` }); // Corrected
   } catch (err) {
     console.error("Error deleting transaction:", err);
     res.status(500).json({ error: err.message });
@@ -388,7 +385,7 @@ cron.schedule("59 23 28-31 * *", async () => {
         });
 
         await transactionsCollection.deleteMany({ userId, type: "Expenses" });
-        console.log(Monthly reset completed successfully for user ${userId});
+        console.log(`Monthly reset completed successfully for user ${userId}`); // Corrected
       }
     } catch (err) {
       console.error("Cron job error:", err);
@@ -423,7 +420,7 @@ app.get("/generate-pdf", verifyToken, async (req, res) => {
     console.log("Total Expenses:", totalExpenses);
     console.log("Remaining Amount:", remainingAmount);
 
-    res.setHeader("Content-Disposition", attachment; filename=${fileName});
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`); // Corrected
     res.setHeader("Content-Type", "application/pdf");
 
     const pdfDoc = new PDFDocument({ margin: 30, size: "A4" });
@@ -532,7 +529,8 @@ app.get("/generate-pdf", verifyToken, async (req, res) => {
   }
 });
 
+
 // Start Server
 app.listen(port, () => {
-  console.log(Server running on port ${port});
+  console.log(`Server running on port ${port}`); // Corrected
 });
